@@ -1,36 +1,95 @@
 <!DOCTYPE html>
 <html lang="lv">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Email Signature Generator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Signature HTML Generator</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      background: #f6f7fb;
+    }
+
+    .block {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input {
+      padding: 8px;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+    }
+
+    #preview {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+    }
+  </style>
 </head>
+
 <body>
 
-<div>
+<div class="block">
+
   <h3>Logo</h3>
 
-  <!-- Logo type -->
-  <div style="display:flex; gap:12px; margin-bottom:10px;">
+  <!-- TYPE -->
+  <div class="row">
     <label><input type="radio" name="logoType" value="full" checked> Pilns logo</label>
     <label><input type="radio" name="logoType" value="symbol"> Tikai P</label>
     <label><input type="radio" name="logoType" value="custom"> Custom</label>
   </div>
 
-  <!-- Upload -->
+  <!-- FILE -->
   <input id="logoFile" type="file" />
   <div id="logoMeta">Fails nav izvēlēts</div>
 
-  <!-- Size -->
-  <div style="margin-top:10px;">
-    <label>Logo platums (px)</label>
-    <input id="logoWidth" type="number" value="134" />
-  </div>
+  <!-- SIZE -->
+  <label>Logo platums (px)</label>
+  <input id="logoWidth" type="number" value="134">
+
 </div>
 
-<hr/>
+
+<div class="block">
+
+  <label>Vārds</label>
+  <input id="firstName" value="Jānis">
+
+  <label>Uzvārds</label>
+  <input id="lastName" value="Bērziņš">
+
+  <label>Amats</label>
+  <input id="jobTitle" value="CEO">
+
+  <label>Telefons</label>
+  <input id="phone" value="+371 20000000">
+
+  <label>WWW</label>
+  <input id="website" value="example.com">
+
+</div>
+
 
 <div id="preview"></div>
+
 
 <script>
 const state = {
@@ -39,49 +98,70 @@ const state = {
   logoWidth: 134
 };
 
+
 // FULL LOGO
-const demoLogo = "data:image/svg+xml;base64," + btoa(`
+const fullLogo = "data:image/svg+xml;base64," + btoa(`
 <svg xmlns="http://www.w3.org/2000/svg" width="220" height="64">
-  <rect width="220" height="64" rx="10" fill="#fff"/>
+  <rect width="220" height="64" rx="10" fill="#ffffff"/>
   <rect width="64" height="64" rx="10" fill="#0b57d0"/>
   <text x="32" y="42" font-size="20" text-anchor="middle" fill="white">L</text>
   <text x="80" y="36" font-size="16" fill="#000">Logo</text>
 </svg>
 `);
 
-// P SYMBOL
-const demoLogoSymbol = "data:image/svg+xml;base64," + btoa(`
+
+// SYMBOL
+const symbolLogo = "data:image/svg+xml;base64," + btoa(`
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
   <rect width="64" height="64" rx="10" fill="#0b57d0"/>
   <text x="32" y="42" font-size="28" text-anchor="middle" fill="white" font-weight="bold">P</text>
 </svg>
 `);
 
-function buildHtml() {
 
-  let logo = demoLogo;
+// BUILD
+function build() {
+
+  let logo = fullLogo;
 
   if (state.logoType === 'symbol') {
-    logo = demoLogoSymbol;
-  } else if (state.logoType === 'custom' && state.logoData) {
+    logo = symbolLogo;
+  }
+
+  if (state.logoType === 'custom' && state.logoData) {
     logo = state.logoData;
   }
 
   return `
-    <img src="${logo}" style="width:${state.logoWidth}px; height:auto;">
+  <table>
+    <tr>
+      <td style="padding-right:20px;">
+        <img src="${logo}" style="width:${state.logoWidth}px; height:auto;">
+      </td>
+      <td>
+        <b>${firstName.value} ${lastName.value}</b><br>
+        ${jobTitle.value}<br>
+        ${phone.value}<br>
+        ${website.value}
+      </td>
+    </tr>
+  </table>
   `;
 }
 
+
+// RENDER
 function render() {
-  document.getElementById('preview').innerHTML = buildHtml();
+  preview.innerHTML = build();
 }
 
-// upload
-document.getElementById('logoFile').addEventListener('change', e => {
+
+// UPLOAD
+logoFile.addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) return;
 
-  document.getElementById('logoMeta').textContent = file.name;
+  logoMeta.textContent = file.name;
 
   const reader = new FileReader();
   reader.onload = ev => {
@@ -91,30 +171,36 @@ document.getElementById('logoFile').addEventListener('change', e => {
   reader.readAsDataURL(file);
 });
 
-// size
-document.getElementById('logoWidth').addEventListener('input', e => {
+
+// SIZE
+logoWidth.addEventListener('input', e => {
   state.logoWidth = parseInt(e.target.value) || 100;
   render();
 });
 
-// type switch
+
+// TYPE SWITCH
 document.querySelectorAll('input[name="logoType"]').forEach(r => {
   r.addEventListener('change', e => {
+
     const type = e.target.value;
     state.logoType = type;
 
-    // DEFAULT SIZE LOGIC
+    // DEFAULTS
     if (type === 'full') {
       state.logoWidth = 134;
-    } else if (type === 'symbol') {
+    }
+
+    if (type === 'symbol') {
       state.logoWidth = 100;
     }
 
-    document.getElementById('logoWidth').value = state.logoWidth;
+    logoWidth.value = state.logoWidth;
 
     render();
   });
 });
+
 
 render();
 </script>

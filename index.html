@@ -3,207 +3,864 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Email Signature HTML Generator</title>
-
+  <title>Email Signature HTML Generator — Final</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
-      background: #f6f7fb;
+    :root{
+      --bg:#f6f7fb;
+      --panel:#ffffff;
+      --line:#d9deea;
+      --text:#1e2430;
+      --muted:#667085;
+      --accent:#1f6feb;
+      --accent-2:#0b57d0;
+      --shadow:0 12px 32px rgba(16,24,40,.08);
+      --radius:18px;
     }
-
-    .block {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 20px;
+    *{box-sizing:border-box}
+    html, body{height:100%}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(180deg,#f8f9fc 0%,#eef2f9 100%);
+      color:var(--text);
+      overflow:hidden;
     }
-
-    label {
-      font-size: 14px;
-      display: block;
-      margin-bottom: 6px;
+    .page{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
     }
-
-    input {
-      padding: 8px;
-      width: 100%;
-      margin-bottom: 12px;
+    .wrap{
+      width:100%;
+      max-width:1730px;
     }
-
-    .row {
-      display: flex;
-      gap: 12px;
+    .layout{
+      display:grid;
+      grid-template-columns: 2fr 1fr;
+      gap:24px;
+      align-items:stretch;
     }
-
-    #preview {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
+    .left-col,.right-col{min-height:0}
+    .right-col{display:block; min-height:0;}
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+    }
+    .panel-head{
+      padding:20px 26px 18px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex:0 0 auto;
+    }
+    .panel-head h2{
+      margin:0;
+      font-size:23px;
+      line-height:1.15;
+      font-weight:700;
+      color:#272d3b;
+    }
+    .panel-body{
+      padding:24px 26px 22px;
+      flex:1 1 auto;
+      min-height:0;
+      overflow:hidden;
+    }
+    .form-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px 18px;
+      align-content:start;
+    }
+    .field label{
+      display:block;
+      font-size:13px;
+      font-weight:700;
+      margin-bottom:8px;
+      color:#394152;
+    }
+    .field input{
+      width:100%;
+      padding:11px 14px;
+      border:1px solid #c7cfdd;
+      border-radius:12px;
+      font:inherit;
+      font-size:15px;
+      line-height:1.2;
+      outline:none;
+      transition:.18s ease;
+      background:#fff;
+      color:#202735;
+    }
+    .size-input-wrap{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .size-input-wrap input{
+      max-width:140px;
+    }
+    .size-unit{
+      font-size:13px;
+      color:#6f7890;
+      white-space:nowrap;
+    }
+    .field input:focus{
+      border-color:#a7c0ff;
+      box-shadow:0 0 0 4px rgba(31,111,235,.10);
+    }
+    .toggle-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:8px;
+    }
+    .toggle-row label{
+      margin:0;
+    }
+    .switch{
+      position:relative;
+      display:inline-block;
+      width:48px;
+      height:28px;
+      flex:0 0 auto;
+    }
+    .switch input{
+      opacity:0;
+      width:0;
+      height:0;
+      position:absolute;
+    }
+    .slider{
+      position:absolute;
+      inset:0;
+      cursor:pointer;
+      background:#d9deea;
+      transition:.2s ease;
+      border-radius:999px;
+    }
+    .slider:before{
+      content:"";
+      position:absolute;
+      height:22px;
+      width:22px;
+      left:3px;
+      top:3px;
+      background:#fff;
+      transition:.2s ease;
+      border-radius:50%;
+      box-shadow:0 1px 3px rgba(0,0,0,.12);
+    }
+    .switch input:checked + .slider{
+      background:#2f74ea;
+    }
+    .switch input:checked + .slider:before{
+      transform:translateX(20px);
+    }
+    .field.is-disabled input[type="text"]{
+      opacity:.55;
+      background:#f7f8fb;
+    }
+    .help{
+      margin-top:7px;
+      color:#6f7890;
+      font-size:12px;
+      line-height:1.35;
+    }
+    .logo-mode-grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .logo-option{
+      position:relative;
+    }
+    .logo-option input{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+    }
+    .logo-option-card{
+      display:block;
+      border:1px solid #c7cfdd;
+      border-radius:18px;
+      background:#fff;
+      padding:14px;
+      cursor:pointer;
+      transition:.18s ease;
+      height:100%;
+    }
+    .logo-option input:checked + .logo-option-card{
+      border-color:#a7c0ff;
+      box-shadow:0 0 0 4px rgba(31,111,235,.10);
+    }
+    .logo-swatch{
+      height:64px;
+      border:1px solid #e3e8f2;
+      border-radius:12px;
+      background:#fbfcff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:10px;
+      padding:10px;
+      overflow:hidden;
+    }
+    .logo-swatch img{
+      display:block;
+      max-width:100%;
+      max-height:40px;
+      width:auto;
+      height:auto;
+    }
+    .logo-option-title{
+      display:block;
+      font-size:14px;
+      font-weight:700;
+      color:#202735;
+      margin-bottom:4px;
+    }
+    .logo-option-help{
+      display:block;
+      font-size:12px;
+      line-height:1.35;
+      color:#6f7890;
+    }
+    .filebox{
+      border:2px dashed #ccd5e8;
+      border-radius:22px;
+      padding:18px;
+      background:#fbfcff;
+    }
+    .filebox input[type=file]{
+      width:100%;
+      padding:10px 12px;
+      background:#fff;
+      border-radius:12px;
+      border:1px solid #c7cfdd;
+      font-size:14px;
+    }
+    .file-meta{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+      word-break:break-word;
+      line-height:1.35;
+    }
+    .btn{
+      appearance:none;
+      border:0;
+      border-radius:18px;
+      background:#2f74ea;
+      color:#fff;
+      font:inherit;
+      font-weight:700;
+      font-size:15px;
+      padding:13px 18px;
+      cursor:pointer;
+      transition:.18s ease;
+      white-space:nowrap;
+      box-shadow:0 2px 0 rgba(0,0,0,.03);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      min-width:0;
+    }
+    .btn:hover{background:var(--accent-2)}
+    .btn-secondary{
+      background:#eef4ff;
+      color:#1f4fbf;
+    }
+    .btn-secondary:hover{
+      background:#dfeaff;
+    }
+    .btn-icon{
+      width:18px;
+      height:18px;
+      display:inline-block;
+      flex:0 0 18px;
+    }
+    .preview-shell{
+      background:linear-gradient(180deg,#ffffff 0%, #fcfdff 100%);
+      padding:22px;
+      overflow:hidden;
+    }
+    .preview-stage{
+      border:1px solid #dbe2ef;
+      border-radius:22px;
+      padding:18px;
+      background:#fff;
+      overflow:hidden;
+      min-height:180px;
+    }
+    #preview{
+      transform:scale(0.86);
+      transform-origin:top left;
+      width:116.28%;
+    }
+    .copy-actions{
+      display:flex;
+      gap:12px;
+      margin-top:18px;
+      justify-content:center;
+      flex-wrap:nowrap;
+    }
+    .status{
+      font-size:12px;
+      color:var(--muted);
+      grid-column:1 / -1;
+      margin-top:2px;
+    }
+    .span-2{
+      grid-column:span 2;
+    }
+    .toast{
+      position:fixed;
+      right:24px;
+      bottom:24px;
+      background:#1e2430;
+      color:#fff;
+      padding:12px 16px;
+      border-radius:12px;
+      box-shadow:0 12px 32px rgba(16,24,40,.18);
+      font-size:14px;
+      line-height:1.2;
+      opacity:0;
+      transform:translateY(10px);
+      pointer-events:none;
+      transition:opacity .22s ease, transform .22s ease;
+      z-index:9999;
+    }
+    .toast.show{
+      opacity:1;
+      transform:translateY(0);
+    }
+    @media (max-width: 1400px){
+      .copy-actions{
+        flex-wrap:wrap;
+      }
+    }
+    @media (max-width: 1200px){
+      body{overflow:auto}
+      .page{
+        display:block;
+        min-height:100vh;
+        padding:18px;
+      }
+      .layout{
+        grid-template-columns:1fr;
+        gap:18px;
+      }
+      .form-grid{
+        grid-template-columns:1fr;
+      }
+      .logo-mode-grid{
+        grid-template-columns:1fr;
+      }
+      .span-2,.status{
+        grid-column:auto;
+      }
+      #preview{
+        transform:scale(0.84);
+        width:119%;
+      }
+      .copy-actions{
+        justify-content:flex-start;
+      }
     }
   </style>
 </head>
-
 <body>
+  <div class="page">
+    <div class="wrap">
+      <div class="layout">
+        <div class="left-col">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Ievaddati</h2>
+            </div>
+            <div class="panel-body">
+              <div class="form-grid">
+                <div class="field filebox span-2">
+                  <label>Logo</label>
+                  <div class="logo-mode-grid">
+                    <label class="logo-option">
+                      <input type="radio" name="logoMode" value="full" checked />
+                      <span class="logo-option-card">
+                        <span class="logo-swatch"><img id="logoFullPreview" alt="Pilns logo" /></span>
+                        <span class="logo-option-title">Pilns logo</span>
+                        <span class="logo-option-help">Pēc noklusējuma izmanto pilno logo.</span>
+                      </span>
+                    </label>
+                    <label class="logo-option">
+                      <input type="radio" name="logoMode" value="symbol" />
+                      <span class="logo-option-card">
+                        <span class="logo-swatch"><img id="logoSymbolPreview" alt="P simbols" /></span>
+                        <span class="logo-option-title">Tikai P simbols</span>
+                        <span class="logo-option-help">Izmanto tikai simbolu no logo.</span>
+                      </span>
+                    </label>
+                    <label class="logo-option">
+                      <input type="radio" name="logoMode" value="custom" />
+                      <span class="logo-option-card">
+                        <span class="logo-swatch"><span style="font-size:12px;color:#6f7890;">Custom</span></span>
+                        <span class="logo-option-title">Augšupielādēt custom</span>
+                        <span class="logo-option-help">Vari izmantot savu PNG, SVG, JPG vai WEBP logo.</span>
+                      </span>
+                    </label>
+                  </div>
+                  <div id="customLogoBox">
+                    <input id="logoFile" type="file" accept="image/png,image/svg+xml,image/jpeg,image/webp" />
+                    <div id="logoMeta" class="file-meta">Fails nav izvēlēts</div>
+                  </div>
+                </div>
 
-<div class="block">
+                <div class="field">
+                  <label for="logoWidth">Logo izmērs</label>
+                  <div class="size-input-wrap">
+                    <input id="logoWidth" type="number" min="20" max="400" step="1" value="120" />
+                    <span class="size-unit">px platums</span>
+                  </div>
+                  <div id="logoSizeInfo" class="help">Pašlaik: 120 px plats logo.</div>
+                </div>
 
-  <h3>Logo</h3>
+                <div class="field">
+                  <label for="firstName">Vārds</label>
+                  <input id="firstName" type="text" value="Jānis" />
+                </div>
 
-  <!-- TYPE -->
-  <div class="row">
-    <label><input type="radio" name="logoType" value="full" checked> Pilns logo</label>
-    <label><input type="radio" name="logoType" value="symbol"> Tikai P</label>
-    <label><input type="radio" name="logoType" value="custom"> Custom</label>
+                <div class="field">
+                  <label for="lastName">Uzvārds</label>
+                  <input id="lastName" type="text" value="Bērziņš" />
+                </div>
+
+                <div class="field">
+                  <label for="jobTitle">Ieņemamais amats</label>
+                  <input id="jobTitle" type="text" value="CEO" />
+                </div>
+
+                <div class="field">
+                  <label for="phone">Telefons</label>
+                  <input id="phone" type="text" value="+371 20000000" />
+                </div>
+
+                <div class="field">
+                  <label for="website">WWW</label>
+                  <input id="website" type="text" value="www.example.com" />
+                  <div class="help">Vari ievadīt ar vai bez https://</div>
+                </div>
+
+                <div class="field">
+                  <label for="linkedinUrl">LinkedIn saite</label>
+                  <input id="linkedinUrl" type="text" value="https://www.linkedin.com/in/example/" />
+                </div>
+
+                <div class="field span-2" id="addressField">
+                  <div class="toggle-row">
+                    <label for="address">Adrese</label>
+                    <label class="switch" aria-label="Rādīt adresi">
+                      <input id="addressEnabled" type="checkbox" checked />
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                  <input id="address" type="text" value="Ganību dambis 24 k-3, Rīga, Latvija" />
+                </div>
+
+                <div id="copyStatus" class="status">Paraksts atjaunojas automātiski.</div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="right-col">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Preview</h2>
+            </div>
+            <div class="preview-shell">
+              <div class="preview-stage">
+                <div id="preview"></div>
+              </div>
+
+              <div class="copy-actions">
+                <button class="btn" id="copyOutlookBtn" type="button">
+                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect x="3" y="5" width="11" height="14" rx="2" fill="currentColor" opacity=".28"/>
+                    <path d="M14 7h5a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M7.2 10.2 10 12l-2.8 1.8M11.7 10.2 8.9 12l2.8 1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span>Outlook</span>
+                </button>
+
+                <button class="btn btn-secondary" id="copyGmailBtn" type="button">
+                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 7.5 12 13l8-5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M5.5 6h13A1.5 1.5 0 0 1 20 7.5v9A1.5 1.5 0 0 1 18.5 18h-13A1.5 1.5 0 0 1 4 16.5v-9A1.5 1.5 0 0 1 5.5 6Z" stroke="currentColor" stroke-width="1.8"/>
+                  </svg>
+                  <span>Gmail</span>
+                </button>
+
+                <button class="btn btn-secondary" id="copyAppleBtn" type="button">
+                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M14.5 5.1c.6-.8 1-1.8.9-2.8-1 .1-2.1.7-2.7 1.5-.6.7-1 1.7-.9 2.7 1 .1 2-.5 2.7-1.4Z" fill="currentColor"/>
+                    <path d="M16.9 12.6c0-2 1.6-3 1.6-3-1-.8-2.4-.9-2.9-.9-1.2-.1-2.3.7-3 .7-.7 0-1.6-.7-2.6-.7-1.3 0-2.6.8-3.2 2-.6 1.2-.6 3.6.5 5.4.6 1 1.4 2.1 2.4 2 .9 0 1.3-.6 2.4-.6 1.1 0 1.5.6 2.4.5 1-.1 1.6-.9 2.2-1.9.7-1.1 1-2.3 1-2.4-.1 0-.8-.3-1.4-1-.5-.6-.9-1.4-.9-2.1Z" fill="currentColor"/>
+                  </svg>
+                  <span>Apple Mail</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- FILE -->
-  <input id="logoFile" type="file" />
-  <div id="logoMeta">Fails nav izvēlēts</div>
+  <div id="toast" class="toast">Paraksts nokopēts</div>
 
-  <!-- SIZE -->
-  <label>Logo platums (px)</label>
-  <input id="logoWidth" type="number" value="134">
+  <script>
+    const state = {
+      logoMode: 'full',
+      customLogoData: '',
+      customLogoNaturalWidth: 0,
+      customLogoNaturalHeight: 0
+    };
 
-</div>
+    const els = {
+      logoFile: document.getElementById('logoFile'),
+      logoMeta: document.getElementById('logoMeta'),
+      customLogoBox: document.getElementById('customLogoBox'),
+      logoModeInputs: document.querySelectorAll('input[name="logoMode"]'),
+      logoFullPreview: document.getElementById('logoFullPreview'),
+      logoSymbolPreview: document.getElementById('logoSymbolPreview'),
+      logoWidth: document.getElementById('logoWidth'),
+      logoSizeInfo: document.getElementById('logoSizeInfo'),
+      firstName: document.getElementById('firstName'),
+      lastName: document.getElementById('lastName'),
+      jobTitle: document.getElementById('jobTitle'),
+      phone: document.getElementById('phone'),
+      website: document.getElementById('website'),
+      address: document.getElementById('address'),
+      addressEnabled: document.getElementById('addressEnabled'),
+      addressField: document.getElementById('addressField'),
+      linkedinUrl: document.getElementById('linkedinUrl'),
+      preview: document.getElementById('preview'),
+      copyOutlookBtn: document.getElementById('copyOutlookBtn'),
+      copyGmailBtn: document.getElementById('copyGmailBtn'),
+      copyAppleBtn: document.getElementById('copyAppleBtn'),
+      copyStatus: document.getElementById('copyStatus')
+    };
 
+    const defaultFullLogo = "data:image/svg+xml;base64," + btoa(`
+<svg width="250" height="85" viewBox="0 0 250 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_61_98" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="250" height="85">
+<path d="M250 0H0V84.0453H250V0Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_61_98)">
+<path d="M12.3789 0L0 12.4417V84.0634H63.4967C68.3208 79.2028 71.0333 76.4823 75.8756 71.6216V0H12.3789ZM24.23 72.4559L17.6036 66.5615V36.0375L24.2846 29.3814L43.2717 29.2726V30.1794L37.683 35.9106L25.213 36.0194L25.304 72.4378H24.23V72.4559ZM58.272 43.927L51.5911 50.5831H32.167V49.6763L37.7558 43.9451H50.6626V24.2306H24.3028V17.5744H51.5911L58.272 24.2306V43.9451V43.927Z" fill="#0E142B"/>
+<path d="M124.627 41.8779L118.547 47.9355H101.343V65.9815H94.4258V29.8351L100.506 23.9226H93.5884V17.8649H118.547L124.627 23.9226V41.896V41.8779ZM117.709 41.8779V23.9044H101.362V47.0831L106.459 41.8597H117.709V41.8779Z" fill="#0E142B"/>
+<path d="M166.078 65.9633L159.998 59.9056V17.8467H166.915V59.9056H183.336V17.8467H190.181V65.9633H166.06H166.078Z" fill="#0E142B"/>
+<path d="M153.99 60.9395L148.82 66.0903H136.733L130.652 60.0327V17.9738H137.57V60.0327H153.99" fill="#0E142B"/>
+<path d="M220.2 47.5726H203.051V65.5642H196.152V29.5085L202.214 23.596H195.314V17.5565H220.218V23.596H203.069V46.7202L208.167 41.515H220.236V47.5545L220.2 47.5726Z" fill="#0E142B"/>
+<path d="M250 47.5726H232.852V65.5642H225.952V29.5085L232.014 23.596H225.115V17.5565H250.018V23.596H232.87V46.7202L237.967 41.515H250.036V47.5545L250 47.5726Z" fill="#0E142B"/>
+</g>
+</svg>`);
 
-<div class="block">
+    const defaultSymbolLogo = "data:image/svg+xml;base64," + btoa(`
+<svg width="76" height="85" viewBox="0 0 76 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12.3789 0L0 12.4417V84.0634H63.4967C68.3208 79.2028 71.0333 76.4823 75.8756 71.6216V0H12.3789ZM24.23 72.4559L17.6036 66.5615V36.0375L24.2846 29.3814L43.2717 29.2726V30.1794L37.683 35.9106L25.213 36.0194L25.304 72.4378H24.23V72.4559ZM58.272 43.927L51.5911 50.5831H32.167V49.6763L37.7558 43.9451H50.6626V24.2306H24.3028V17.5744H51.5911L58.272 24.2306V43.9451V43.927Z" fill="#0E142B"/>
+</svg>`);
 
-  <label>Vārds</label>
-  <input id="firstName" value="Jānis">
-
-  <label>Uzvārds</label>
-  <input id="lastName" value="Bērziņš">
-
-  <label>Amats</label>
-  <input id="jobTitle" value="CEO">
-
-  <label>Telefons</label>
-  <input id="phone" value="+371 20000000">
-
-  <label>WWW</label>
-  <input id="website" value="example.com">
-
-</div>
-
-
-<div id="preview"></div>
-
-
-<script>
-const state = {
-  logoData: '',
-  logoType: 'full',
-  logoWidth: 134
-};
-
-
-// FULL LOGO
-const fullLogo = "data:image/svg+xml;base64," + btoa(`
-<svg xmlns="http://www.w3.org/2000/svg" width="220" height="64">
-  <rect width="220" height="64" rx="10" fill="#ffffff"/>
-  <rect width="64" height="64" rx="10" fill="#0b57d0"/>
-  <text x="32" y="42" font-size="20" text-anchor="middle" fill="white">L</text>
-  <text x="80" y="36" font-size="16" fill="#000">Logo</text>
-</svg>
-`);
-
-
-// SYMBOL
-const symbolLogo = "data:image/svg+xml;base64," + btoa(`
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
-  <rect width="64" height="64" rx="10" fill="#0b57d0"/>
-  <text x="32" y="42" font-size="28" text-anchor="middle" fill="white" font-weight="bold">P</text>
-</svg>
-`);
-
-
-// BUILD
-function build() {
-
-  let logo = fullLogo;
-
-  if (state.logoType === 'symbol') {
-    logo = symbolLogo;
-  }
-
-  if (state.logoType === 'custom' && state.logoData) {
-    logo = state.logoData;
-  }
-
-  return `
-  <table>
-    <tr>
-      <td style="padding-right:20px;">
-        <img src="${logo}" style="width:${state.logoWidth}px; height:auto;">
-      </td>
-      <td>
-        <b>${firstName.value} ${lastName.value}</b><br>
-        ${jobTitle.value}<br>
-        ${phone.value}<br>
-        ${website.value}
-      </td>
-    </tr>
-  </table>
-  `;
-}
-
-
-// RENDER
-function render() {
-  preview.innerHTML = build();
-}
-
-
-// UPLOAD
-logoFile.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  logoMeta.textContent = file.name;
-
-  const reader = new FileReader();
-  reader.onload = ev => {
-    state.logoData = ev.target.result;
-    render();
-  };
-  reader.readAsDataURL(file);
-});
-
-
-// SIZE
-logoWidth.addEventListener('input', e => {
-  state.logoWidth = parseInt(e.target.value) || 100;
-  render();
-});
-
-
-// TYPE SWITCH
-document.querySelectorAll('input[name="logoType"]').forEach(r => {
-  r.addEventListener('change', e => {
-
-    const type = e.target.value;
-    state.logoType = type;
-
-    // DEFAULTS
-    if (type === 'full') {
-      state.logoWidth = 134;
+    function getActiveLogoData() {
+      if (state.logoMode === 'symbol') return defaultSymbolLogo;
+      if (state.logoMode === 'custom') return state.customLogoData || defaultFullLogo;
+      return defaultFullLogo;
     }
 
-    if (type === 'symbol') {
-      state.logoWidth = 100;
+
+    const demoLinkedin = "data:image/svg+xml;base64," + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34">
+        <rect width="34" height="34" rx="6" fill="#0A66C2"/>
+        <rect x="7" y="13" width="4" height="13" fill="white"/>
+        <circle cx="9" cy="9" r="2.2" fill="white"/>
+        <path d="M15 13h4v1.8c.9-1.4 2.4-2.3 4.7-2.3 4 0 5.3 2.6 5.3 6.6V26h-4v-6.3c0-1.8-.4-3.6-2.7-3.6-2.3 0-3.3 1.6-3.3 3.5V26h-4z" fill="white"/>
+      </svg>
+    `);
+
+    function escapeHtml(str = '') {
+      return str
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
     }
 
-    logoWidth.value = state.logoWidth;
+    function normalizeUrl(value = '') {
+      const trimmed = value.trim();
+      if (!trimmed) return '';
+      if (/^https?:\/\//i.test(trimmed) || /^mailto:/i.test(trimmed) || /^tel:/i.test(trimmed)) return trimmed;
+      return 'https://' + trimmed;
+    }
 
+    function onlyDigitsPhone(phone = '') {
+      return phone.replace(/[^\d+]/g, '');
+    }
+
+    function getLogoWidth() {
+      const value = parseInt(els.logoWidth.value, 10);
+      if (Number.isNaN(value)) return 120;
+      return Math.min(400, Math.max(20, value));
+    }
+
+    function updateLogoSizeInfo() {
+      const width = getLogoWidth();
+      let info = `Pašlaik: ${width} px plats logo.`;
+
+      if (state.logoMode === 'full') {
+        info += ' Tiek izmantots noklusējuma pilnais logo.';
+      } else if (state.logoMode === 'symbol') {
+        info += ' Tiek izmantots tikai “P” simbols.';
+      } else if (state.customLogoData) {
+        if (state.customLogoNaturalWidth && state.customLogoNaturalHeight) {
+          info += ` Augšupielādētā faila oriģinālais izmērs: ${state.customLogoNaturalWidth} × ${state.customLogoNaturalHeight} px.`;
+        } else {
+          info += ' Tiek izmantots augšupielādētais custom logo.';
+        }
+      } else {
+        info += ' Custom logo vēl nav augšupielādēts.';
+      }
+
+      els.logoSizeInfo.textContent = info;
+    }
+
+    function buildSignatureHtml() {
+      const firstName = els.firstName.value.trim();
+      const lastName = els.lastName.value.trim();
+      const fullName = [firstName, lastName].filter(Boolean).join(' ') || 'Vārds Uzvārds';
+      const jobTitle = els.jobTitle.value.trim();
+      const phone = els.phone.value.trim();
+      const websiteRaw = els.website.value.trim();
+      const websiteUrl = normalizeUrl(websiteRaw);
+      const websiteLabel = websiteRaw || '';
+      const address = els.addressEnabled.checked ? els.address.value.trim() : '';
+      const linkedinUrl = normalizeUrl(els.linkedinUrl.value.trim());
+      const logoData = getActiveLogoData();
+      const logoWidth = getLogoWidth();
+
+      return `
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; width:520px; max-width:520px; font-family:Arial, Helvetica, sans-serif;">
+  <tr>
+    <td valign="top" width="140" style="padding:0 20px 0 0; vertical-align:top; width:140px;">
+      <img src="${logoData}" alt="Logo" border="0" width="${logoWidth}" style="display:block; width:${logoWidth}px; max-width:${logoWidth}px; height:auto; border:0; outline:none; text-decoration:none;">
+    </td>
+    <td width="1" style="width:1px; background-color:#d9deea; font-size:0; line-height:0;">&nbsp;</td>
+    <td valign="top" style="padding:0 0 0 20px; vertical-align:top;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+        <tr>
+          <td style="padding:0 0 4px 0;">
+            <span style="font-family:Arial, Helvetica, sans-serif; font-size:20px; line-height:24px; font-weight:bold; color:#1e2430;">${escapeHtml(fullName)}</span>
+          </td>
+        </tr>
+        ${jobTitle ? `
+        <tr>
+          <td style="padding:0 0 10px 0;">
+            <span style="font-family:Arial, Helvetica, sans-serif; font-size:13px; line-height:18px; color:#5b6472;">${escapeHtml(jobTitle)}</span>
+          </td>
+        </tr>` : ''}
+        ${phone ? `
+        <tr>
+          <td style="padding:0 0 2px 0;">
+            <span style="font-family:Arial, Helvetica, sans-serif; font-size:13px; line-height:18px; color:#5b6472;">T: </span>
+            <a href="tel:${escapeHtml(onlyDigitsPhone(phone))}" style="font-family:Arial, Helvetica, sans-serif; font-size:13px; line-height:18px; color:#0b57d0; text-decoration:none;">${escapeHtml(phone)}</a>
+          </td>
+        </tr>` : ''}
+        ${websiteLabel ? `
+        <tr>
+          <td style="padding:0 0 2px 0;">
+            <span style="font-family:Arial, Helvetica, sans-serif; font-size:13px; line-height:18px; color:#5b6472;">W: </span>
+            <a href="${escapeHtml(websiteUrl)}" target="_blank" style="font-family:Arial, Helvetica, sans-serif; font-size:13px; line-height:18px; color:#0b57d0; text-decoration:none;">${escapeHtml(websiteLabel)}</a>
+          </td>
+        </tr>` : ''}
+        ${address ? `
+        <tr>
+          <td style="padding:0 0 10px 0;">
+            <span style="font-family:Arial, Helvetica, sans-serif; font-size:13px; line-height:18px; color:#5b6472;">${escapeHtml(address)}</span>
+          </td>
+        </tr>` : `
+        <tr>
+          <td style="padding:0 0 14px 0;"></td>
+        </tr>`}
+        ${linkedinUrl ? `
+        <tr>
+          <td style="padding-top:6px;">
+            <a href="${escapeHtml(linkedinUrl)}" target="_blank" style="text-decoration:none;">
+              <img src="${demoLinkedin}" alt="LinkedIn" border="0" width="28" height="28" style="display:block; width:28px; height:28px; border:0; outline:none; text-decoration:none;">
+            </a>
+          </td>
+        </tr>` : ''}
+      </table>
+    </td>
+  </tr>
+</table>`.trim();
+    }
+
+    function render() {
+      els.logoFullPreview.src = defaultFullLogo;
+      els.logoSymbolPreview.src = defaultSymbolLogo;
+      els.preview.innerHTML = buildSignatureHtml();
+      updateLogoSizeInfo();
+    }
+
+    function readFileToDataUrl(file, cb) {
+      const reader = new FileReader();
+      reader.onload = e => cb(e.target.result || '');
+      reader.readAsDataURL(file);
+    }
+
+    function handleFile(input, metaEl) {
+      const file = input.files && input.files[0];
+      if (!file) {
+        state.customLogoData = '';
+        state.customLogoNaturalWidth = 0;
+        state.customLogoNaturalHeight = 0;
+        metaEl.textContent = 'Fails nav izvēlēts';
+        render();
+        return;
+      }
+      metaEl.textContent = `${file.name} · ${Math.round(file.size / 1024)} KB`;
+      readFileToDataUrl(file, (data) => {
+        state.customLogoData = data;
+        const img = new Image();
+        img.onload = () => {
+          state.customLogoNaturalWidth = img.naturalWidth || 0;
+          state.customLogoNaturalHeight = img.naturalHeight || 0;
+          metaEl.textContent = `${file.name} · ${Math.round(file.size / 1024)} KB · ${state.customLogoNaturalWidth} × ${state.customLogoNaturalHeight} px`;
+          render();
+        };
+        img.onerror = () => {
+          state.customLogoNaturalWidth = 0;
+          state.customLogoNaturalHeight = 0;
+          render();
+        };
+        img.src = data;
+      });
+    }
+
+    function syncLogoModeUi() {
+      els.customLogoBox.style.display = state.logoMode === 'custom' ? 'block' : 'none';
+      updateLogoSizeInfo();
+    }
+
+    function syncAddressToggleUi() {
+      els.addressField.classList.toggle('is-disabled', !els.addressEnabled.checked);
+      els.address.disabled = !els.addressEnabled.checked;
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2200);
+    }
+
+    async function copyHtmlToClipboard() {
+      const html = buildSignatureHtml();
+      const text = els.preview.innerText || html.replace(/<[^>]+>/g, ' ');
+      if (navigator.clipboard && window.ClipboardItem) {
+        const item = new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([text], { type: 'text/plain' })
+        });
+        await navigator.clipboard.write([item]);
+        return true;
+      }
+      return false;
+    }
+
+    function copyPreviewSelection() {
+      const range = document.createRange();
+      range.selectNodeContents(els.preview);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      const ok = document.execCommand('copy');
+      selection.removeAllRanges();
+      return ok;
+    }
+
+    async function handleCopy(mode) {
+      try {
+        if (mode === 'outlook') {
+          const ok = copyPreviewSelection();
+          if (!ok) throw new Error('fallback failed');
+          els.copyStatus.textContent = 'Paraksts nokopēts Outlook ielīmēšanai.';
+          showToast('Paraksts nokopēts Outlookam');
+          return;
+        }
+
+        const ok = await copyHtmlToClipboard();
+        if (!ok) {
+          const fallbackOk = copyPreviewSelection();
+          if (!fallbackOk) throw new Error('copy failed');
+        }
+
+        if (mode === 'gmail') {
+          els.copyStatus.textContent = 'Paraksts nokopēts Gmail ielīmēšanai.';
+          showToast('Paraksts nokopēts Gmail');
+        } else {
+          els.copyStatus.textContent = 'Paraksts nokopēts Apple Mail ielīmēšanai.';
+          showToast('Paraksts nokopēts Apple Mail');
+        }
+      } catch (err) {
+        els.copyStatus.textContent = 'Neizdevās automātiski nokopēt. Iekopē preview manuāli.';
+        showToast('Neizdevās nokopēt');
+      }
+    }
+
+    [
+      els.firstName,
+      els.lastName,
+      els.jobTitle,
+      els.phone,
+      els.website,
+      els.address,
+      els.linkedinUrl
+    ].forEach(el => el.addEventListener('input', render));
+
+    els.logoFile.addEventListener('change', () => handleFile(els.logoFile, els.logoMeta));
+    els.logoWidth.addEventListener('input', render);
+    els.logoModeInputs.forEach(el => el.addEventListener('change', () => {
+      state.logoMode = el.value;
+      syncLogoModeUi();
+      render();
+    }));
+    els.addressEnabled.addEventListener('change', () => {
+      syncAddressToggleUi();
+      render();
+    });
+    els.copyOutlookBtn.addEventListener('click', () => handleCopy('outlook'));
+    els.copyGmailBtn.addEventListener('click', () => handleCopy('gmail'));
+    els.copyAppleBtn.addEventListener('click', () => handleCopy('apple'));
+
+    syncAddressToggleUi();
+    syncLogoModeUi();
     render();
-  });
-});
-
-
-render();
-</script>
-
+  </script>
 </body>
 </html>

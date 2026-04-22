@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Email Signature Generator</title>
+</head>
+<body>
+
+<div>
+  <h3>Logo</h3>
+
+  <!-- Logo type -->
+  <div style="display:flex; gap:12px; margin-bottom:10px;">
+    <label><input type="radio" name="logoType" value="full" checked> Pilns logo</label>
+    <label><input type="radio" name="logoType" value="symbol"> Tikai P</label>
+    <label><input type="radio" name="logoType" value="custom"> Custom</label>
+  </div>
+
+  <!-- Upload -->
+  <input id="logoFile" type="file" />
+  <div id="logoMeta">Fails nav izvēlēts</div>
+
+  <!-- Size -->
+  <div style="margin-top:10px;">
+    <label>Logo platums (px)</label>
+    <input id="logoWidth" type="number" value="134" />
+  </div>
+</div>
+
+<hr/>
+
+<div id="preview"></div>
+
+<script>
+const state = {
+  logoData: '',
+  logoType: 'full',
+  logoWidth: 134
+};
+
+// FULL LOGO
+const demoLogo = "data:image/svg+xml;base64," + btoa(`
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="64">
+  <rect width="220" height="64" rx="10" fill="#fff"/>
+  <rect width="64" height="64" rx="10" fill="#0b57d0"/>
+  <text x="32" y="42" font-size="20" text-anchor="middle" fill="white">L</text>
+  <text x="80" y="36" font-size="16" fill="#000">Logo</text>
+</svg>
+`);
+
+// P SYMBOL
+const demoLogoSymbol = "data:image/svg+xml;base64," + btoa(`
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+  <rect width="64" height="64" rx="10" fill="#0b57d0"/>
+  <text x="32" y="42" font-size="28" text-anchor="middle" fill="white" font-weight="bold">P</text>
+</svg>
+`);
+
+function buildHtml() {
+
+  let logo = demoLogo;
+
+  if (state.logoType === 'symbol') {
+    logo = demoLogoSymbol;
+  } else if (state.logoType === 'custom' && state.logoData) {
+    logo = state.logoData;
+  }
+
+  return `
+    <img src="${logo}" style="width:${state.logoWidth}px; height:auto;">
+  `;
+}
+
+function render() {
+  document.getElementById('preview').innerHTML = buildHtml();
+}
+
+// upload
+document.getElementById('logoFile').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  document.getElementById('logoMeta').textContent = file.name;
+
+  const reader = new FileReader();
+  reader.onload = ev => {
+    state.logoData = ev.target.result;
+    render();
+  };
+  reader.readAsDataURL(file);
+});
+
+// size
+document.getElementById('logoWidth').addEventListener('input', e => {
+  state.logoWidth = parseInt(e.target.value) || 100;
+  render();
+});
+
+// type switch
+document.querySelectorAll('input[name="logoType"]').forEach(r => {
+  r.addEventListener('change', e => {
+    const type = e.target.value;
+    state.logoType = type;
+
+    // DEFAULT SIZE LOGIC
+    if (type === 'full') {
+      state.logoWidth = 134;
+    } else if (type === 'symbol') {
+      state.logoWidth = 100;
+    }
+
+    document.getElementById('logoWidth').value = state.logoWidth;
+
+    render();
+  });
+});
+
+render();
+</script>
+
+</body>
+</html>

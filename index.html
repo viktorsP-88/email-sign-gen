@@ -238,6 +238,61 @@
       line-height:1.35;
       color:#6f7890;
     }
+
+    .settings-box{
+      border:1px solid #d9deea;
+      border-radius:22px;
+      padding:20px;
+      background:#fbfcff;
+    }
+    .settings-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:18px;
+      flex-wrap:wrap;
+    }
+    .settings-head h3{
+      margin:0;
+      font-size:18px;
+      line-height:1.2;
+      font-weight:700;
+      color:#272d3b;
+    }
+    .align-options{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+    }
+    .align-option{
+      position:relative;
+    }
+    .align-option input{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+    }
+    .align-option-card{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:50px;
+      padding:12px 14px;
+      border:1px solid #c7cfdd;
+      border-radius:16px;
+      background:#fff;
+      font-size:15px;
+      font-weight:700;
+      color:#202735;
+      cursor:pointer;
+      transition:.18s ease;
+      text-align:center;
+    }
+    .align-option input:checked + .align-option-card{
+      border-color:#a7c0ff;
+      box-shadow:0 0 0 4px rgba(31,111,235,.10);
+    }
     .filebox{
       border:2px dashed #ccd5e8;
       border-radius:22px;
@@ -370,6 +425,9 @@
       .logo-mode-grid{
         grid-template-columns:1fr;
       }
+      .align-options{
+        grid-template-columns:1fr;
+      }
       .span-2,.status{
         grid-column:auto;
       }
@@ -428,13 +486,42 @@
                   </div>
                 </div>
 
-                <div class="field">
-                  <label for="logoWidth">Logo izmērs</label>
-                  <div class="size-input-wrap">
-                    <input id="logoWidth" type="number" min="20" max="400" step="1" value="120" />
-                    <span class="size-unit">px platums</span>
+                <div class="field span-2">
+                  <div class="settings-box">
+                    <div class="settings-head">
+                      <h3>Logo uzstādījumi</h3>
+                      <button class="btn btn-secondary" id="resetLogoDefaultsBtn" type="button">Reset to defaults</button>
+                    </div>
+
+                    <div class="form-grid">
+                      <div class="field">
+                        <label for="logoWidth">Logo izmērs</label>
+                        <div class="size-input-wrap">
+                          <input id="logoWidth" type="number" min="20" max="400" step="1" value="134" />
+                          <span class="size-unit">px platums</span>
+                        </div>
+                        <div id="logoSizeInfo" class="help">Pašlaik: 134 px plats logo. Tiek izmantots noklusējuma pilnais logo.</div>
+                      </div>
+
+                      <div class="field">
+                        <label>Vertikālais izlīdzinājums</label>
+                        <div class="align-options">
+                          <label class="align-option">
+                            <input type="radio" name="logoAlign" value="top" checked />
+                            <span class="align-option-card">Augšā</span>
+                          </label>
+                          <label class="align-option">
+                            <input type="radio" name="logoAlign" value="middle" />
+                            <span class="align-option-card">Pa vidu</span>
+                          </label>
+                          <label class="align-option">
+                            <input type="radio" name="logoAlign" value="bottom" />
+                            <span class="align-option-card">Apakšā</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div id="logoSizeInfo" class="help">Pašlaik: 120 px plats logo.</div>
                 </div>
 
                 <div class="field">
@@ -531,8 +618,15 @@
   <div id="toast" class="toast">Paraksts nokopēts</div>
 
   <script>
+    const DEFAULT_LOGO_SETTINGS = {
+      full: { width: 134, align: 'top' },
+      symbol: { width: 100, align: 'top' },
+      custom: { width: 134, align: 'top' }
+    };
+
     const state = {
       logoMode: 'full',
+      logoSettings: JSON.parse(JSON.stringify(DEFAULT_LOGO_SETTINGS)),
       customLogoData: '',
       customLogoNaturalWidth: 0,
       customLogoNaturalHeight: 0
@@ -547,6 +641,8 @@
       logoSymbolPreview: document.getElementById('logoSymbolPreview'),
       logoWidth: document.getElementById('logoWidth'),
       logoSizeInfo: document.getElementById('logoSizeInfo'),
+      logoAlignInputs: document.querySelectorAll('input[name="logoAlign"]'),
+      resetLogoDefaultsBtn: document.getElementById('resetLogoDefaultsBtn'),
       firstName: document.getElementById('firstName'),
       lastName: document.getElementById('lastName'),
       jobTitle: document.getElementById('jobTitle'),
@@ -619,15 +715,41 @@
       return phone.replace(/[^\d+]/g, '');
     }
 
+    function getActiveLogoSettings() {
+      return state.logoSettings[state.logoMode] || DEFAULT_LOGO_SETTINGS.full;
+    }
+
     function getLogoWidth() {
-      const value = parseInt(els.logoWidth.value, 10);
-      if (Number.isNaN(value)) return 120;
+      const settings = getActiveLogoSettings();
+      const value = parseInt(settings.width, 10);
+      if (Number.isNaN(value)) return 134;
       return Math.min(400, Math.max(20, value));
+    }
+
+    function getLogoVerticalAlign() {
+      const settings = getActiveLogoSettings();
+      return settings.align === 'middle' || settings.align === 'bottom' ? settings.align : 'top';
+    }
+
+    function syncLogoSettingsUi() {
+      const settings = getActiveLogoSettings();
+      els.logoWidth.value = getLogoWidth();
+      els.logoAlignInputs.forEach(input => {
+        input.checked = input.value === getLogoVerticalAlign();
+      });
+      updateLogoSizeInfo();
+    }
+
+    function resetLogoDefaults() {
+      state.logoSettings = JSON.parse(JSON.stringify(DEFAULT_LOGO_SETTINGS));
+      syncLogoSettingsUi();
+      render();
     }
 
     function updateLogoSizeInfo() {
       const width = getLogoWidth();
-      let info = `Pašlaik: ${width} px plats logo.`;
+      const alignMap = { top: 'augšā', middle: 'pa vidu', bottom: 'apakšā' };
+      let info = `Pašlaik: ${width} px plats logo, izlīdzinājums ${alignMap[getLogoVerticalAlign()]}.`;
 
       if (state.logoMode === 'full') {
         info += ' Tiek izmantots noklusējuma pilnais logo.';
@@ -659,11 +781,12 @@
       const linkedinUrl = normalizeUrl(els.linkedinUrl.value.trim());
       const logoData = getActiveLogoData();
       const logoWidth = getLogoWidth();
+      const logoVerticalAlign = getLogoVerticalAlign();
 
       return `
 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; width:520px; max-width:520px; font-family:Arial, Helvetica, sans-serif;">
   <tr>
-    <td valign="top" width="140" style="padding:0 20px 0 0; vertical-align:top; width:140px;">
+    <td valign="${logoVerticalAlign}" width="140" style="padding:0 20px 0 0; vertical-align:${logoVerticalAlign}; width:140px;">
       <img src="${logoData}" alt="Logo" border="0" width="${logoWidth}" style="display:block; width:${logoWidth}px; max-width:${logoWidth}px; height:auto; border:0; outline:none; text-decoration:none;">
     </td>
     <td width="1" style="width:1px; background-color:#d9deea; font-size:0; line-height:0;">&nbsp;</td>
@@ -721,7 +844,7 @@
       els.logoFullPreview.src = defaultFullLogo;
       els.logoSymbolPreview.src = defaultSymbolLogo;
       els.preview.innerHTML = buildSignatureHtml();
-      updateLogoSizeInfo();
+      syncLogoSettingsUi();
     }
 
     function readFileToDataUrl(file, cb) {
@@ -761,7 +884,7 @@
 
     function syncLogoModeUi() {
       els.customLogoBox.style.display = state.logoMode === 'custom' ? 'block' : 'none';
-      updateLogoSizeInfo();
+      syncLogoSettingsUi();
     }
 
     function syncAddressToggleUi() {
@@ -844,12 +967,22 @@
     ].forEach(el => el.addEventListener('input', render));
 
     els.logoFile.addEventListener('change', () => handleFile(els.logoFile, els.logoMeta));
-    els.logoWidth.addEventListener('input', render);
+    els.logoWidth.addEventListener('input', () => {
+      state.logoSettings[state.logoMode].width = els.logoWidth.value;
+      render();
+    });
+    els.logoAlignInputs.forEach(el => el.addEventListener('change', () => {
+      if (!el.checked) return;
+      state.logoSettings[state.logoMode].align = el.value;
+      render();
+    }));
     els.logoModeInputs.forEach(el => el.addEventListener('change', () => {
+      if (!el.checked) return;
       state.logoMode = el.value;
       syncLogoModeUi();
       render();
     }));
+    els.resetLogoDefaultsBtn.addEventListener('click', resetLogoDefaults);
     els.addressEnabled.addEventListener('change', () => {
       syncAddressToggleUi();
       render();
